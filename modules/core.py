@@ -240,9 +240,9 @@ def start() -> None:
                     frame_processor.process_image(modules.globals.source_path, modules.globals.output_path, modules.globals.output_path)
                     release_resources()
                 if is_image(modules.globals.target_path):
-                    update_status('Processing to image succeed!')
+                    update_status(f'Processing to {out_file} succeed!')
                 else:
-                    update_status('Processing to image failed!')
+                    update_status(f'Processing to {out_file} failed!')
                 continue
             # process image to videos
             if modules.globals.nsfw_filter and ui.check_and_ignore_nsfw(modules.globals.target_path, destroy):
@@ -277,9 +277,9 @@ def start() -> None:
             # clean and validate
             clean_temp(modules.globals.target_path)
             if is_video(modules.globals.target_path):
-                update_status('Processing to video succeed!')
+                update_status(f'Processing to {out_file}  succeed!')
             else:
-                update_status('Processing to video failed!')
+                update_status(f'Processing to {out_file}  failed!')
 
 
 def destroy(to_quit=True) -> None:
