@@ -348,6 +348,8 @@ Additional command line arguments are given below. To learn out what they do, ch
 ```
 options:
   -h, --help                                               show this help message and exit
+  -sf SOURCE_FOLDER, --source_folder SOURCE_FOLDER         select a source folder
+  -tf ARGET_FOLDER, --target_folder TARGET_FOLDER          select a target falder
   -s SOURCE_PATH, --source SOURCE_PATH                     select a source image
   -t TARGET_PATH, --target TARGET_PATH                     select a target image or video
   -o OUTPUT_PATH, --output OUTPUT_PATH                     select output file or directory
@@ -374,9 +376,43 @@ options:
   -v, --version                                            show program's version number and exit
 ```
 
-Looking for a CLI mode? Using the -s/--source argument will make the run program in cli mode.
+### New Defaults UI option
+- New option `Use defaults`
+#### 1. Linux and macOS
+Environment variables are typically set in shell configuration files like .bashrc, .bash_profile, or .zshrc (if you're using Zsh). These files are sourced when you start a new shell session.
 
-### Webcam mode on Windows 11 using WSL2 Ubuntu (optional)
+##### Temporary (Session-Specific) Environment Variables
+These variables will only last for the duration of your session.
+```
+export DEFAULT_SOURCE="path/to/source/folder"
+export DEFAULT_TARGET="path/to/target/folder"
+export DEFAULT_OUTPUT="path/to/ouput/folder"
+```
+You can verify the variable by running:
+```
+echo $DEFAULT_SOURCE
+echo $DEFAULT_TARGET
+echo $DEFAULT_OUTPUT
+```
+
+#### 2. Windows
+For Windows, you can set environment variables through the __Command Prompt__ or __PowerShell__.
+
+__Temporary (Session-Specific) Environment Variables__
+
+__Command Prompt__:
+```
+set VAR_NAME=value
+echo %VAR_NAME%
+```
+__PowerShell__:
+```
+$env:VAR_NAME="value"
+echo $env:VAR_NAME
+```
+
+Looking for a CLI mode? Using the -s/--source argument will make the run program in cli mode.
+###### Webcam mode on Windows 11 using WSL2 Ubuntu (optional)
 
 <details>
 <summary>Click to see the details</summary>
