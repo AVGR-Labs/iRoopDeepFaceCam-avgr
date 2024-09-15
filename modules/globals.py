@@ -14,6 +14,7 @@ source_folder_path = None
 target_folder_path = None
 use_source_folder = None    # New toggle selection batch processing   
 use_target_folder = None    # New toggle selection batch processing
+use_default_folders = None
 
 source_path = None
 target_path = None

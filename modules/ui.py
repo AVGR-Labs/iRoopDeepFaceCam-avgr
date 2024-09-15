@@ -11,7 +11,7 @@ from modules.face_analyser import get_one_face, get_one_face_left, get_one_face_
 from modules.capturer import get_video_frame, get_video_frame_total
 from modules.processors.frame.core import get_frame_processors_modules
 from modules.processors.frame.face_swapper import update_face_assignments
-
+from modules.env import Enviroment
 from modules.utilities import is_image, is_video, resolve_relative_path, has_image_extension
 import numpy as np
 import time
@@ -61,8 +61,8 @@ def create_root(start: Callable[[], None], destroy: Callable[[], None]) -> ctk.C
     global target_face2_value,pseudo_threshold_var
     global face_tracking_value,many_faces_var,pseudo_face_var
     
-    global use_folder_as_source, use_folder_as_source_switch
-    global use_folder_as_target, use_folder_as_target_switch
+    global use_folder_as_source, use_folder_as_source_switch,use_default_folders
+    global use_folder_as_target, use_folder_as_target_switch,use_default_os_envs,use_default_os_envs_switch
     
     global pseudo_face_switch, stickiness_dropdown, pseudo_threshold_dropdown, clear_tracking_button
     global embedding_weight_size_var,position_size_var,old_embedding_size_var,new_embedding_size_var
@@ -108,13 +108,12 @@ def create_root(start: Callable[[], None], destroy: Callable[[], None]) -> ctk.C
     
     use_folder_as_source = ctk.BooleanVar(value=modules.globals.use_source_folder)
     use_folder_as_source_switch = ctk.CTkSwitch(root, text='Use folder as source', variable=use_folder_as_source, cursor='hand2', command=lambda: toggle_source_mode(use_folder_as_source.get()))
-    
     use_folder_as_source_switch.place(relx=0.03, rely=y_start + 4.6*y_increment, relwidth=0.8)
     
     use_folder_as_target = ctk.BooleanVar(value=modules.globals.use_target_folder)
     use_folder_as_target_switch = ctk.CTkSwitch(root, text='Use folder as target', variable=use_folder_as_target, cursor='hand2', command=lambda: toggle_target_mode(use_folder_as_target.get()))
+    use_folder_as_target_switch.place(relx=0.55, rely=y_start + 4.6*y_increment, relwidth=0.2)
     
-    use_folder_as_target_switch.place(relx=0.80, rely=y_start + 4.6*y_increment, relwidth=0.2)
     # Left column of switches
     both_faces_var = ctk.BooleanVar(value=modules.globals.both_faces)
     both_faces_switch = ctk.CTkSwitch(root, text='Show Both Faces', variable=both_faces_var, cursor='hand2',
@@ -151,37 +150,42 @@ def create_root(start: Callable[[], None], destroy: Callable[[], None]) -> ctk.C
     live_flip_x_var = ctk.BooleanVar(value=modules.globals.flip_x)
     live_flip_x_vswitch = ctk.CTkSwitch(root, text='Flip X', variable=live_flip_x_var, cursor='hand2',
                                     command=lambda: setattr(modules.globals, 'flip_x', live_flip_x_var.get()))
-    live_flip_x_vswitch.place(relx=0.80, rely=y_start + 5.2*y_increment, relwidth=0.2)
+    live_flip_x_vswitch.place(relx=0.55, rely=y_start + 5.2*y_increment, relwidth=0.2)
 
     live_flip_y_var = ctk.BooleanVar(value=modules.globals.flip_y)
     live_flip_y_switch = ctk.CTkSwitch(root, text='Flip Y', variable=live_flip_y_var, cursor='hand2',
                                     command=lambda: setattr(modules.globals, 'flip_y', live_flip_y_var.get()))
-    live_flip_y_switch.place(relx=0.80, rely=y_start + 5.8*y_increment, relwidth=0.2)
+    live_flip_y_switch.place(relx=0.55, rely=y_start + 5.8*y_increment, relwidth=0.2)
 
     keep_fps_var = ctk.BooleanVar(value=modules.globals.keep_fps)
     keep_fps_switch = ctk.CTkSwitch(root, text='Keep fps', variable=keep_fps_var, cursor='hand2',
                                     command=lambda: setattr(modules.globals, 'keep_fps', keep_fps_var.get()))
-    keep_fps_switch.place(relx=0.80, rely=y_start + 6.4*y_increment, relwidth=0.4)
+    keep_fps_switch.place(relx=0.55, rely=y_start + 6.4*y_increment, relwidth=0.4)
 
     keep_audio_var = ctk.BooleanVar(value=modules.globals.keep_audio)
     keep_audio_switch = ctk.CTkSwitch(root, text='Keep Audio', variable=keep_audio_var, cursor='hand2',
                                     command=lambda: setattr(modules.globals, 'keep_audio', keep_audio_var.get()))
-    keep_audio_switch.place(relx=0.80, rely=y_start + 7*y_increment, relwidth=0.4)
+    keep_audio_switch.place(relx=0.55, rely=y_start + 7*y_increment, relwidth=0.4)
 
     keep_frames_var = ctk.BooleanVar(value=modules.globals.keep_frames)
     keep_frames_switch = ctk.CTkSwitch(root, text='Keep Frames', variable=keep_frames_var, cursor='hand2',
                                     command=lambda: setattr(modules.globals, 'keep_frames', keep_frames_var.get()))
-    keep_frames_switch.place(relx=0.80, rely=y_start + 7.6*y_increment, relwidth=0.4)
+    keep_frames_switch.place(relx=0.55, rely=y_start + 7.6*y_increment, relwidth=0.4)
 
     nsfw_filter_var = ctk.BooleanVar(value=modules.globals.nsfw_filter)
     nsfw_filter_switch = ctk.CTkSwitch(root, text='NSFW Filter', variable=nsfw_filter_var, cursor='hand2',
                                     command=lambda: setattr(modules.globals, 'nsfw_filter', nsfw_filter_var.get()))
-    nsfw_filter_switch.place(relx=0.80, rely=y_start + 8.2*y_increment, relwidth=0.4)
+    nsfw_filter_switch.place(relx=0.55, rely=y_start + 8.2*y_increment, relwidth=0.4)
 
     enhancer_value = ctk.BooleanVar(value=modules.globals.fp_ui['face_enhancer'])
     enhancer_switch = ctk.CTkSwitch(root, text='Face Enhancer', variable=enhancer_value, cursor='hand2',
                                     command=lambda: update_tumbler('face_enhancer', enhancer_value.get()))
-    enhancer_switch.place(relx=0.80, rely=y_start + 8.8*y_increment, relwidth=0.4)
+    enhancer_switch.place(relx=0.55, rely=y_start + 8.8*y_increment, relwidth=0.4)
+
+    # Right collum
+    use_default_os_envs = ctk.BooleanVar(value=modules.globals.use_default_folders)
+    use_default_os_envs_switch = ctk.CTkSwitch(root, text='Use default input/outputs\n (if set. See docs)', variable=use_default_os_envs, cursor='hand2', command=lambda: toggle_default_mode(use_default_os_envs.get()))
+    use_default_os_envs_switch.place(relx=0.80, rely=y_start + 5.2*y_increment, relwidth=0.2)
 
 
     ##### Mouth Mask Frame
@@ -413,7 +417,22 @@ def toggle_source_mode(use_folder: bool) -> None:
     else:
         modules.globals.source_folder_path = None
         source_label.configure(image=None)
-
+def toggle_default_mode(use_defaults: bool) -> None:
+    global Enviroment
+    env = Enviroment()
+    if use_defaults:
+        if env.ready(target='DEFAULT_SOURCE'):
+            modules.globals.source_folder_path = env.Default()
+            toggle_source_mode(True)
+        if env.ready(target='DEFAULT_TARGET'):
+            modules.globals.target_folder_path = env.Default()
+            toggle_target_mode(True)
+        if env.ready(target='DEFAULT_OUTPUT'):
+            modules.globals.output_path = env.Default()
+    else:
+        toggle_source_mode(False)
+        toggle_target_mode(False)
+        
 def toggle_target_mode(use_folder: bool) -> None:
     modules.globals.use_target_folder = use_folder
     if use_folder:
@@ -554,15 +573,15 @@ def select_target_path() -> None:
 
 def select_output_path(start: Callable[[], None]) -> None:
     global RECENT_DIRECTORY_OUTPUT, img_ft, vid_ft
-    if modules.globals.use_target_folder or modules.globals.use_source_folder:
-        output_path = ctk.filedialog.askdirectory(title='Select a output folder', initialdir=RECENT_DIRECTORY_TARGET)
-    else:
-        if is_image(modules.globals.target_path):
-            output_path = ctk.filedialog.asksaveasfilename(title='save image output file', filetypes=[img_ft], defaultextension='.png', initialfile='output.png', initialdir=RECENT_DIRECTORY_OUTPUT)
-        elif is_video(modules.globals.target_path):
-            output_path = ctk.filedialog.asksaveasfilename(title='save video output file', filetypes=[vid_ft], defaultextension='.mp4', initialfile='output.mp4', initialdir=RECENT_DIRECTORY_OUTPUT)
-        else:
-            output_path = None
+    # if modules.globals.use_target_folder or modules.globals.use_source_folder:
+    output_path = ctk.filedialog.askdirectory(title='Select a output folder', initialdir=RECENT_DIRECTORY_TARGET)
+    # else:
+    #     if is_image(modules.globals.target_path):
+    #         output_path = ctk.filedialog.asksaveasfilename(title='save image output file', filetypes=[img_ft], defaultextension='.png', initialfile='output.png', initialdir=RECENT_DIRECTORY_OUTPUT)
+    #     elif is_video(modules.globals.target_path):
+    #         output_path = ctk.filedialog.asksaveasfilename(title='save video output file', filetypes=[vid_ft], defaultextension='.mp4', initialfile='output.mp4', initialdir=RECENT_DIRECTORY_OUTPUT)
+    #     else:
+    #         output_path = None
     if output_path:
         modules.globals.output_path = output_path
         RECENT_DIRECTORY_OUTPUT = os.path.dirname(modules.globals.output_path)
