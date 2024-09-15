@@ -230,7 +230,7 @@ def start() -> None:
             # process image to image
             if has_image_extension(modules.globals.target_path):
                 if modules.globals.nsfw_filter and ui.check_and_ignore_nsfw(modules.globals.target_path, destroy):
-                    return
+                    continue
                 try:
                     shutil.copy2(modules.globals.target_path, modules.globals.output_path)
                 except Exception as e:
@@ -243,10 +243,10 @@ def start() -> None:
                     update_status('Processing to image succeed!')
                 else:
                     update_status('Processing to image failed!')
-                return
+                continue
             # process image to videos
             if modules.globals.nsfw_filter and ui.check_and_ignore_nsfw(modules.globals.target_path, destroy):
-                return
+                continue
             update_status('Creating temp resources...')
             create_temp(modules.globals.target_path)
             update_status('Extracting frames...')
