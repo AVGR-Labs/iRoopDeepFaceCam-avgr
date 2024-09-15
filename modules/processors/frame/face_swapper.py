@@ -2,6 +2,7 @@ from typing import Any, List, Optional, Tuple
 import cv2
 import insightface
 import threading
+import os
 
 import modules.globals
 import modules.processors.frame.core
@@ -14,6 +15,8 @@ import numpy as np
 import time
 
 FACE_SWAPPER = None
+# INSWAPPER_MODEL = 'inswapper_128_fp16.onnx' # Default
+INSWAPPER_MODEL = 'inswapper_128.onnx'
 THREAD_LOCK = threading.Lock()
 NAME = 'DLC.FACE-SWAPPER'
 
@@ -44,12 +47,18 @@ face_lost_count = 0
 
     
 def pre_check() -> bool:
-    download_directory_path = resolve_relative_path('../models')
+    
+    if os.name == 'nt':
+        download_directory_path = resolve_relative_path('..\models')
+    else:
+        download_directory_path = resolve_relative_path('../models')
     conditional_download(download_directory_path, ['https://huggingface.co/ivideogameboss/iroopdeepfacecam/blob/main/inswapper_128_fp16.onnx'])
     return True
 
 def pre_start() -> bool:
     from modules.core import update_status
+    if  modules.globals.target_folder_path:
+        return True
     if not is_image(modules.globals.source_path):
         update_status('Select an image for source path.', NAME)
         return False
@@ -66,7 +75,7 @@ def get_face_swapper() -> Any:
 
     with THREAD_LOCK:
         if FACE_SWAPPER is None:
-            model_path = resolve_relative_path('../models/inswapper_128_fp16.onnx')
+            model_path = resolve_relative_path(f'../models/{INSWAPPER_MODEL}')
             FACE_SWAPPER = insightface.model_zoo.get_model(model_path, providers=modules.globals.execution_providers)
     return FACE_SWAPPER
 

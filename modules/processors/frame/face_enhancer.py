@@ -3,7 +3,7 @@ import cv2
 import threading
 import gfpgan
 import os
-
+import sys
 import modules.globals
 import modules.processors.frame.core
 from modules.core import update_status
@@ -20,13 +20,16 @@ NAME = 'DLC.FACE-ENHANCER'
 
 
 def pre_check() -> bool:
-    download_directory_path = resolve_relative_path('..\models')
+    if os.name == 'nt':
+        download_directory_path = resolve_relative_path('..\models')
+    else:
+        download_directory_path = resolve_relative_path('../models')
     conditional_download(download_directory_path, ['https://github.com/TencentARC/GFPGAN/releases/download/v1.3.4/GFPGANv1.4.pth'])
     return True
 
 
 def pre_start() -> bool:
-    if not is_image(modules.globals.target_path) and not is_video(modules.globals.target_path):
+    if not is_image(modules.globals.target_path) and not is_video(modules.globals.target_path) and not modules.globals.target_folder_path:
         update_status('Select an image or video for target path.', NAME)
         return False
     return True
@@ -37,6 +40,7 @@ def get_face_enhancer() -> Any:
 
     with THREAD_LOCK:
         if FACE_ENHANCER is None:
+            
             if os.name == 'nt':
                 model_path = resolve_relative_path('..\models\GFPGANv1.4.pth')
                 # todo: set models path https://github.com/TencentARC/GFPGAN/issues/399
