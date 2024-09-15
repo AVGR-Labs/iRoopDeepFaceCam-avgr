@@ -23,7 +23,6 @@ class Enviroment:
             bool: True if the variable is set and points to a valid directory, False otherwise.
         """
         self.DEFAULT = os.getenv(target)
-        print(self.DEFAULT,os.path.isdir(self.DEFAULT))
         if self.DEFAULT and os.path.isdir(self.DEFAULT):
             return True
         return False
