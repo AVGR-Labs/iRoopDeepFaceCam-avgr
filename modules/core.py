@@ -1,5 +1,7 @@
 import os
 import sys
+
+import modules.utilities
 # single thread doubles cuda performance - needs to be set before torch import
 if any(arg.startswith('--execution-provider') for arg in sys.argv):
     os.environ['OMP_NUM_THREADS'] = '1'
