@@ -21,7 +21,7 @@ import modules.globals
 import modules.metadata
 import modules.ui as ui
 from modules.processors.frame.core import get_frame_processors_modules
-from modules.utilities import has_image_extension, is_image, is_video, detect_fps, create_video, extract_frames, get_temp_frame_paths, restore_audio, create_temp, move_temp, clean_temp, normalize_output_path
+from modules.utilities import has_image_extension,is_valid_file, is_image, is_video, detect_fps, create_video, extract_frames, get_temp_frame_paths, restore_audio, create_temp, move_temp, clean_temp, normalize_output_path
 from modules.face_analyser import initialize_face_analyser
 
 if 'ROCMExecutionProvider' in modules.globals.execution_providers:
