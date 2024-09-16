@@ -227,7 +227,8 @@ def start() -> None:
                     modules.globals.target_path = os.path.join(modules.globals.target_folder_path,target_file)
                 
                 
-                out_file = f"{os.path.splitext(source_file)[0]}_{target_file}"
+                out_file = f"{os.path.splitext(os.path.basename(source_file))[0]}_{os.path.basename(target_file)}"
+                
                 
                 modules.globals.output_path = os.path.join(output_dir, out_file)
                 
