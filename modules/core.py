@@ -213,75 +213,90 @@ def start() -> None:
     source_files = check_file_arg(modules.globals.source_folder_path,modules.globals.source_path )
     update_status(f"Processing '{len(target_files)} 'target files and '{len(source_files)}' source files")
     output_dir = modules.globals.output_path
-    for source_file in source_files:
-        print(source_file)
-        if modules.globals.source_folder_path:
-            modules.globals.source_path = os.path.join(modules.globals.source_folder_path,source_file)
-        else:   
-            modules.globals.source_path = source_file
-        for target_file in target_files:
-            if modules.globals.target_folder_path:
-                modules.globals.target_path = os.path.join(modules.globals.target_folder_path,target_file)
-       
-            out_file = f"{os.path.splitext(source_file)[0]}_{target_file}"
-            modules.globals.output_path = os.path.join(output_dir, out_file)
-            
-            
-            # process image to image
-            if has_image_extension(modules.globals.target_path):
+    for target_file in target_files:
+        
+        for source_file in source_files:
+            try:
+                if modules.globals.source_folder_path:
+                    modules.globals.source_path = os.path.join(modules.globals.source_folder_path,source_file)
+                else:   
+                    modules.globals.source_path = source_file
+                if modules.globals.target_folder_path:
+                    modules.globals.target_path = os.path.join(modules.globals.target_folder_path,target_file)
+                
+                
+                out_file = f"{os.path.splitext(source_file)[0]}_{target_file}"
+                
+                modules.globals.output_path = os.path.join(output_dir, out_file)
+                
+                if not is_valid_file(modules.globals.target_path):
+                    print(f"Wrong target filetype {modules.globals.target_path}")
+                    continue
+                if not is_valid_file(modules.globals.source_path):
+                    print(f"Wrong source filetype {modules.globals.source_path}")
+                    continue
+
+                # process image to image
+                if has_image_extension(modules.globals.target_path):
+                    if modules.globals.nsfw_filter and ui.check_and_ignore_nsfw(modules.globals.target_path, destroy):
+                        continue
+                    try:
+                        shutil.copy2(modules.globals.target_path, modules.globals.output_path)
+                    except Exception as e:
+                        print("Error copying file:", str(e))
+                    for frame_processor in get_frame_processors_modules(modules.globals.frame_processors):
+                        update_status('Progressing...', frame_processor.NAME)
+                        frame_processor.process_image(modules.globals.source_path, modules.globals.output_path, modules.globals.output_path)
+                        release_resources()
+                    if is_image(modules.globals.target_path):
+                        update_status(f'Processing to {out_file} succeed!')
+                    else:
+                        update_status(f'Processing to {out_file} failed!')
+                    continue
+                # process image to videos
                 if modules.globals.nsfw_filter and ui.check_and_ignore_nsfw(modules.globals.target_path, destroy):
                     continue
-                try:
-                    shutil.copy2(modules.globals.target_path, modules.globals.output_path)
-                except Exception as e:
-                    print("Error copying file:", str(e))
+                update_status('Creating temp resources...')
+                create_temp(modules.globals.target_path)
+                update_status('Extracting frames...')
+                extract_frames(modules.globals.target_path)
+                temp_frame_paths = get_temp_frame_paths(modules.globals.target_path)
                 for frame_processor in get_frame_processors_modules(modules.globals.frame_processors):
                     update_status('Progressing...', frame_processor.NAME)
-                    frame_processor.process_image(modules.globals.source_path, modules.globals.output_path, modules.globals.output_path)
+                    frame_processor.process_video(modules.globals.source_path, temp_frame_paths)
                     release_resources()
-                if is_image(modules.globals.target_path):
-                    update_status(f'Processing to {out_file} succeed!')
-                else:
-                    update_status(f'Processing to {out_file} failed!')
-                continue
-            # process image to videos
-            if modules.globals.nsfw_filter and ui.check_and_ignore_nsfw(modules.globals.target_path, destroy):
-                continue
-            update_status('Creating temp resources...')
-            create_temp(modules.globals.target_path)
-            update_status('Extracting frames...')
-            extract_frames(modules.globals.target_path)
-            temp_frame_paths = get_temp_frame_paths(modules.globals.target_path)
-            for frame_processor in get_frame_processors_modules(modules.globals.frame_processors):
-                update_status('Progressing...', frame_processor.NAME)
-                frame_processor.process_video(modules.globals.source_path, temp_frame_paths)
-                release_resources()
-            # handles fps
-            if modules.globals.keep_fps:
-                update_status('Detecting fps...')
-                fps = detect_fps(modules.globals.target_path)
-                update_status(f'Creating video with {fps} fps...')
-                create_video(modules.globals.target_path, fps)
-            else:
-                update_status('Creating video with 30.0 fps...')
-                create_video(modules.globals.target_path)
-            # handle audio
-            if modules.globals.keep_audio:
+                # handles fps
                 if modules.globals.keep_fps:
-                    update_status('Restoring audio...')
+                    update_status('Detecting fps...')
+                    fps = detect_fps(modules.globals.target_path)
+                    update_status(f'Creating video with {fps} fps...')
+                    create_video(modules.globals.target_path, fps)
                 else:
-                    update_status('Restoring audio might cause issues as fps are not kept...')
-                restore_audio(modules.globals.target_path, modules.globals.output_path)
-            else:
-                move_temp(modules.globals.target_path, modules.globals.output_path)
-            # clean and validate
-            clean_temp(modules.globals.target_path)
-            if is_video(modules.globals.target_path):
-                update_status(f'Processing to {out_file}  succeed!')
-            else:
-                update_status(f'Processing to {out_file}  failed!')
+                    update_status('Creating video with 30.0 fps...')
+                    create_video(modules.globals.target_path)
+                # handle audio
+                if modules.globals.keep_audio:
+                    if modules.globals.keep_fps:
+                        update_status('Restoring audio...')
+                    else:
+                        update_status('Restoring audio might cause issues as fps are not kept...')
+                    restore_audio(modules.globals.target_path, modules.globals.output_path)
+                else:
+                    move_temp(modules.globals.target_path, modules.globals.output_path)
+                # clean and validate
+                clean_temp(modules.globals.target_path)
+                if is_video(modules.globals.target_path):
+                    update_status(f'Processing to {out_file}  succeed!')
+                else:
+                    update_status(f'Processing to {out_file}  failed!')
+            except Exception as e:
+                print(f"""Error processing file!
 
+Source: {source_file}
+Target: {target_file}
+Output: {out_file}
 
+Error: {e}""")
 def destroy(to_quit=True) -> None:
     if modules.globals.target_path:
         clean_temp(modules.globals.target_path)
