@@ -27,7 +27,7 @@ class Enviroment:
             return True
         return False
     
-    def Default(self):
+    def ReturnAndClear(self):
         """
         Returns the current value of self.DEFAULT and resets it to None.
         
@@ -37,3 +37,4 @@ class Enviroment:
         d = self.DEFAULT
         self.DEFAULT = None
         return d
+    

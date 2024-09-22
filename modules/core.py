@@ -1,6 +1,7 @@
 import os
 import sys
 
+import modules.env
 import modules.utilities
 # single thread doubles cuda performance - needs to be set before torch import
 if any(arg.startswith('--execution-provider') for arg in sys.argv):
@@ -17,6 +18,7 @@ import torch
 import onnxruntime
 import tensorflow
 
+import modules.debug
 import modules.globals
 import modules.metadata
 import modules.ui as ui
@@ -208,6 +210,9 @@ def check_file_arg(folde_path, filepath):
         print('Error: No input target defined..')
         return []
 def start() -> None:
+    if modules.env.Enviroment().ready("DEBUG"):
+        modules.env.Enviroment().ReturnAndClear()
+        modules.debug.enabled=True
     for frame_processor in get_frame_processors_modules(modules.globals.frame_processors):
         if not frame_processor.pre_start():
             return
