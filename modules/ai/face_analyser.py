@@ -2,7 +2,7 @@ from typing import Any, List, Optional
 import insightface
 
 import modules.globals
-from modules.typing import Frame,Face
+from modules.ai.typing import Frame,Face
 
 FACE_ANALYSER = None
 
@@ -13,27 +13,12 @@ def get_face_analyser() -> Any:
         initialize_face_analyser()
     return FACE_ANALYSER
 
-
-
-
 def get_one_face(frame: Frame) -> Optional[Face]:
     faces = FACE_ANALYSER.get(frame, max_num=1)
     return faces[0] if faces else None
 
-
-
-
-
 def get_many_faces(frame: Frame) -> List[Face]:
     return FACE_ANALYSER.get(frame)
-
-
-
-
-
-
-
-
 
 
 def initialize_face_analyser():

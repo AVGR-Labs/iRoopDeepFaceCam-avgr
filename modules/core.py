@@ -1,7 +1,6 @@
 import os
 import sys
 
-import modules.env
 import modules.utilities
 # single thread doubles cuda performance - needs to be set before torch import
 if any(arg.startswith('--execution-provider') for arg in sys.argv):
@@ -18,13 +17,21 @@ import torch
 import onnxruntime
 import tensorflow
 
-import modules.debug
+import modules.utilities.env
+import modules.utilities.metadata
 import modules.globals
-import modules.metadata
-import modules.ui as ui
-from modules.processors.frame.core import get_frame_processors_modules
-from modules.utilities import has_image_extension,is_valid_file, is_image, is_video, detect_fps, create_video, extract_frames, get_temp_frame_paths, restore_audio, create_temp, move_temp, clean_temp, normalize_output_path
-from modules.face_analyser import initialize_face_analyser
+
+
+import modules.ui.ui as ui
+
+# import modules.metadata
+# import modules.debug
+from modules.ai.processors.frame.core import get_frame_processors_modules
+from modules.filehandle.check import has_image_extension
+from modules.utilities.ffmpeg import detect_fps, create_video, extract_frames, restore_audio
+from modules.filehandle.path import get_temp_frame_paths,  normalize_output_path,create_temp, move_temp, clean_temp
+# from modules.face_analyser import initialize_face_analyser
+from modules.filehandle.check import is_image, is_video,is_valid_file ,is_valid_file
 
 if 'ROCMExecutionProvider' in modules.globals.execution_providers:
     del torch
@@ -54,7 +61,7 @@ def parse_args() -> None:
     program.add_argument('--max-memory', help='maximum amount of RAM in GB', dest='max_memory', type=int, default=suggest_max_memory())
     program.add_argument('--execution-provider', help='execution provider', dest='execution_provider', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
-    program.add_argument('-v', '--version', action='version', version=f'{modules.metadata.name} {modules.metadata.version}')
+    program.add_argument('-v', '--version', action='version', version=f'{modules.utilities.metadata.name} {modules.utilities.metadata.version}')
 
     program.add_argument('--both-faces', help='use two faces in source image', dest='both_faces', action='store_true', default=False)
     program.add_argument('--flip-faces', help='flip two faces in source image from right to left', dest='flip_faces', action='store_true', default=False)
@@ -210,9 +217,9 @@ def check_file_arg(folde_path, filepath):
         print('Error: No input target defined..')
         return []
 def start() -> None:
-    if modules.env.Enviroment().ready("DEBUG"):
-        modules.env.Enviroment().ReturnAndClear()
-        modules.debug.enabled=True
+    if modules.utilities.env.Enviroment().ready("DEBUG"):
+        modules.utilities.env.Enviroment().ReturnAndClear()
+        modules.utilities.debug.enabled=True
     for frame_processor in get_frame_processors_modules(modules.globals.frame_processors):
         if not frame_processor.pre_start():
             return
@@ -223,7 +230,7 @@ def start() -> None:
     for target_file in target_files:
         
         for source_file in source_files:
-            try:
+            # try:
                 if modules.globals.source_folder_path:
                     modules.globals.source_path = os.path.join(modules.globals.source_folder_path,source_file)
                 else:   
@@ -269,8 +276,9 @@ def start() -> None:
                 update_status('Extracting frames...')
                 extract_frames(modules.globals.target_path)
                 temp_frame_paths = get_temp_frame_paths(modules.globals.target_path)
+                
                 for frame_processor in get_frame_processors_modules(modules.globals.frame_processors):
-                    update_status('Progressing...', frame_processor.NAME)
+                    update_status('Processing...', frame_processor.NAME)
                     frame_processor.process_video(modules.globals.source_path, temp_frame_paths)
                     release_resources()
                 # handles fps
@@ -297,14 +305,14 @@ def start() -> None:
                     update_status(f'Processing to {out_file}  succeed!')
                 else:
                     update_status(f'Processing to {out_file}  failed!')
-            except Exception as e:
-                print(f"""Error processing file!
-
-Source: {source_file}
-Target: {target_file}
-Output: {out_file}
-
-Error: {e}""")
+#             except Exception as e:
+#                 print(f"""Error processing file!
+# 
+# Source: {source_file}
+# Target: {target_file}
+# Output: {modules.globals.output_path}
+# 
+# Error: {e}""")
 def destroy(to_quit=True) -> None:
     if modules.globals.target_path:
         clean_temp(modules.globals.target_path)
@@ -321,7 +329,7 @@ def run() -> None:
     limit_resources()
         # Add the initialization here
     # Initialize face analyser
-    from modules.face_analyser import initialize_face_analyser
+    from modules.ai.face_analyser import initialize_face_analyser
     initialize_face_analyser()
 
     if modules.globals.headless:

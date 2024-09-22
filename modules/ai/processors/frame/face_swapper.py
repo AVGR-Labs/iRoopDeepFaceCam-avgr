@@ -3,13 +3,16 @@ import cv2
 import insightface
 import threading
 import os
-
+import urllib
+import modules.ai.processors.frame
+import modules.ai.processors.frame.core
 import modules.globals
-import modules.processors.frame.core
-
-from modules.face_analyser import get_one_face, get_many_faces, get_one_face_left, get_one_face_right, get_face_analyser
-from modules.typing import Face, Frame
-from modules.utilities import conditional_download, resolve_relative_path, is_image, is_video
+import modules.ai.processors
+from modules.ai.typing import Frame, Face
+from modules.filehandle.path import  resolve_relative_path
+from modules.filehandle.check import is_image, is_video
+from modules.ai.face_analyser import get_one_face, get_many_faces, get_one_face_left, get_one_face_right, get_face_analyser
+import  modules.utilities.download as download
 from collections import deque
 import numpy as np
 import time
@@ -52,7 +55,7 @@ def pre_check() -> bool:
         download_directory_path = resolve_relative_path('..\models')
     else:
         download_directory_path = resolve_relative_path('../models')
-    conditional_download(download_directory_path, ['https://huggingface.co/ivideogameboss/iroopdeepfacecam/blob/main/inswapper_128_fp16.onnx'])
+    download.conditional(download_directory_path, ['https://huggingface.co/ivideogameboss/iroopdeepfacecam/blob/main/inswapper_128_fp16.onnx'])
     return True
 
 def pre_start() -> bool:
@@ -654,7 +657,7 @@ def process_image(source_path: str, target_path: str, output_path: str) -> None:
 def process_video(source_path: str, temp_frame_paths: List[str]) -> None:
     if modules.globals.face_tracking:
         reset_face_tracking()
-    modules.processors.frame.core.process_video(source_path, temp_frame_paths, process_frames)
+    modules.ai.processors.frame.core.process_video(source_path, temp_frame_paths, process_frames)
 
 def create_face_mask(face: Face, frame: Frame) -> np.ndarray:
     mask = np.zeros(frame.shape[:2], dtype=np.uint8)

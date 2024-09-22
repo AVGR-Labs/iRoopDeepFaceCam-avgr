@@ -1,5 +1,5 @@
 import modules.globals
-
+import urllib
 enabled = None
 def print(msg):
     global enabled

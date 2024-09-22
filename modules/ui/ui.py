@@ -6,13 +6,14 @@ import cv2
 from PIL import Image, ImageOps
 
 import modules.globals
-import modules.metadata
-from modules.face_analyser import get_one_face, get_one_face_left, get_one_face_right,get_many_faces
-from modules.capturer import get_video_frame, get_video_frame_total
-from modules.processors.frame.core import get_frame_processors_modules
-from modules.processors.frame.face_swapper import update_face_assignments
-from modules.env import Enviroment
-from modules.utilities import is_image, is_video, resolve_relative_path, has_image_extension
+import modules.utilities.metadata
+from modules.ai.face_analyser import get_one_face, get_one_face_left, get_one_face_right,get_many_faces
+from modules.utilities.frame import get_video_frame, get_video_frame_total
+from modules.ai.processors.frame.core import get_frame_processors_modules
+from modules.ai.processors.frame.face_swapper import update_face_assignments
+from modules.utilities.env import Enviroment
+from modules.filehandle.check import is_image, is_video, has_image_extension
+from modules.filehandle.path import resolve_relative_path
 import numpy as np
 import time
 
@@ -75,7 +76,7 @@ def create_root(start: Callable[[], None], destroy: Callable[[], None]) -> ctk.C
 
     root = ctk.CTk()
     root.minsize(ROOT_WIDTH, ROOT_HEIGHT)
-    root.title(f'{modules.metadata.name} {modules.metadata.version} {modules.metadata.edition}')
+    root.title(f'{modules.utilities.metadata.name} {modules.utilities.metadata.version} {modules.utilities.metadata.edition}')
     root.configure()
     root.protocol('WM_DELETE_WINDOW', lambda: destroy())
 
@@ -592,7 +593,7 @@ def check_and_ignore_nsfw(target, destroy: Callable = None) -> bool:
     TODO: Consider to make blur the target.
     '''
     from numpy import ndarray
-    from modules.predicter import predict_image, predict_video, predict_frame
+    from modules.ai.predict.predicter import predict_image, predict_video, predict_frame
     if type(target) is str: # image/video file path
         check_nsfw = predict_image if has_image_extension(target) else predict_video
     elif type(target) is ndarray: # frame object
